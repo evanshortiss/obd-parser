@@ -1,0 +1,46 @@
+{
+  "name": "obd-parser",
+  "version": "0.1.0",
+  "description": "OBD interface that can send and receive messages over a given connection.",
+  "main": "lib/obd-interface.js",
+  "dependencies": {
+    "bluebird": "^3.2.2",
+    "case": "^1.4.1",
+    "chai": "^3.5.0",
+    "fhlog": "^0.12.1",
+    "lodash": "^4.5.0",
+    "verror": "^1.6.1"
+  },
+  "devDependencies": {
+    "jshint": "^2.9.1",
+    "linelint": "^1.0.0",
+    "sinon": "^1.17.3",
+    "istanbul": "^0.4.2",
+    "chai-as-promised": "^5.2.0",
+    "proxyquire": "^1.7.4"
+  },
+  "scripts": {
+    "lint": "npm run-script jshint && npm run-script linelint",
+    "jshint": "jshint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
+    "linelint": "linelint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
+    "test": "env NODE_PATH=. istanbul cover -x *.test.js _mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\")",
+    "ci": "npm run-script lint && npm test"
+  },
+  "keywords": [
+    "obd",
+    "parser",
+    "message",
+    "obdii",
+    "obd2"
+  ],
+  "author": "Evan Shortiss",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/evanshortiss/obd-parser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/evanshortiss/obd-parser/issues"
+  },
+  "homepage": "https://github.com/evanshortiss/obd-parser"
+}
