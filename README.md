@@ -1,7 +1,8 @@
 obd-parser
 ==========
 
-An interface for interacting with OBD.
+A module for interacting with the OBD (On Board Diagnostics) of vehicles 
+via ELM 327 connections.
 
 ## Install
 
@@ -18,7 +19,7 @@ npm install obd-parser-serial-connection install obd-parser --save
 
 #### Bluetooth Connection
 
-This is not implemented yet.
+This connector is not implemented yet.
 
 
 ## Usage
