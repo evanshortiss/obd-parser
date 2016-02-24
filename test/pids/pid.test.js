@@ -114,6 +114,37 @@ describe('#PID', function () {
     });
   });
 
+  describe('#getWriteString', function () {
+    it('should return the correct string we write to the ecu', function () {
+      var p = new PID({
+        mode: constants.OBD_MESSAGE_TYPES.CURRENT_DATA,
+        pid: 'AA',
+        bytes: 2,
+        name: 'rpm',
+        min: 0,
+        max: 100,
+        unit: 'rpm'
+      });
+
+      expect(p.getPretty('1000')).to.equal('1000rpm');
+    });
+  });
+
+  describe('#getWriteString', function () {
+    it('should return the correct string we write to the ecu', function () {
+      var p = new PID({
+        mode: constants.OBD_MESSAGE_TYPES.CURRENT_DATA,
+        pid: 'AA',
+        bytes: 2,
+        name: 'rpm',
+        min: 0,
+        max: 100
+      });
+
+      expect(p.getWriteString()).to.equal('01AA');
+    });
+  });
+
 });
 
 describe('Custom PID Imlementations', function () {
@@ -127,4 +158,3 @@ describe('Custom PID Imlementations', function () {
     .readdirSync(path.join(__dirname, '../../lib/pids/pids'))
     .forEach(requireFile);
 });
-

@@ -12,19 +12,20 @@
     "verror": "^1.6.1"
   },
   "devDependencies": {
+    "chai-as-promised": "^5.2.0",
+    "istanbul": "^0.4.2",
     "jshint": "^2.9.1",
     "linelint": "^1.0.0",
-    "sinon": "^1.17.3",
-    "istanbul": "^0.4.2",
-    "chai-as-promised": "^5.2.0",
-    "proxyquire": "^1.7.4"
+    "mocha": "^2.4.5",
+    "proxyquire": "^1.7.4",
+    "sinon": "^1.17.3"
   },
   "scripts": {
     "lint": "npm run-script jshint && npm run-script linelint",
     "jshint": "jshint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
     "linelint": "linelint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
     "check-coverage": "istanbul check-coverage --statements 90 --branches 90 --functions 90 --lines 90",
-    "test": "env NODE_PATH=. npm run-script lint && istanbul cover -x *.test.js _mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\") && npm run-script check-coverage"
+    "test": "npm run-script lint && env NODE_PATH=. istanbul cover -x *.test.js _mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\") && npm run-script check-coverage"
   },
   "keywords": [
     "obd",
