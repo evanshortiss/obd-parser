@@ -1,6 +1,9 @@
 obd-parser
 ==========
 
+[![Circle CI](https://circleci.com/gh/evanshortiss/obd-parser/tree/master.svg?style=svg)](https://circleci.com/gh/evanshortiss/obd-parser/tree/master)
+
+
 A module for interacting with the OBD (On Board Diagnostics) of vehicles 
 via ELM 327 connections.
 
