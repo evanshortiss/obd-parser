@@ -24,8 +24,7 @@
     "jshint": "jshint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
     "linelint": "linelint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
     "check-coverage": "istanbul check-coverage --statements 90 --branches 90 --functions 90 --lines 90",
-    "test": "env NODE_PATH=. istanbul cover -x *.test.js _mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\")",
-    "ci": "npm run-script lint && npm test && npm run-script check-coverage"
+    "test": "env NODE_PATH=. npm run-script lint && istanbul cover -x *.test.js _mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\") && npm run-script check-coverage"
   },
   "keywords": [
     "obd",
