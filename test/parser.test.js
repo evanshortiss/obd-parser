@@ -106,8 +106,7 @@ describe('#OBDStreamParser', function () {
       parser.on('data', dataSpy);
 
       rs.pipe(parser);
-
-      setTimeout(function () {
+      rs.on('close', function () {
         expect(dataSpy.callCount).to.equal(4);
         done();
       });
