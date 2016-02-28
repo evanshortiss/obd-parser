@@ -1,6 +1,6 @@
 {
   "name": "obd-parser",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OBD interface that can send and receive messages over a given connection.",
   "main": "lib/obd-interface.js",
   "dependencies": {
