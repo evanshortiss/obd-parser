@@ -114,8 +114,8 @@ describe('#PID', function () {
     });
   });
 
-  describe('#getWriteString', function () {
-    it('should return the correct string we write to the ecu', function () {
+  describe('#getPretty', function () {
+    it('should return a formatted value', function () {
       var p = new PID({
         mode: constants.OBD_MESSAGE_TYPES.CURRENT_DATA,
         pid: 'AA',
@@ -127,6 +127,19 @@ describe('#PID', function () {
       });
 
       expect(p.getPretty('1000')).to.equal('1000rpm');
+    });
+
+    it('should return the passed in value', function () {
+      var p = new PID({
+        mode: constants.OBD_MESSAGE_TYPES.CURRENT_DATA,
+        pid: 'AA',
+        bytes: 2,
+        name: 'rpm',
+        min: 0,
+        max: 100,
+      });
+
+      expect(p.getPretty('1000')).to.equal('1000');
     });
   });
 
