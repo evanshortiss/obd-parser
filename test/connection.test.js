@@ -45,7 +45,7 @@ describe('connection', function () {
         .then(function (conn) {
           expect(conn.write).to.be.a('function');
           expect(writeSpy.called).to.be.true;
-          expect(writeSpy.firstCall.args[0]).to.equal('ATZ\r');
+          expect(writeSpy.firstCall.args[0]).to.equal('ATE0\r');
           done();
         })
         .catch(done)
