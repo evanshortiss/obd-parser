@@ -4,7 +4,7 @@ obd-parser
 [![Circle CI](https://circleci.com/gh/evanshortiss/obd-parser/tree/master.svg?style=svg)](https://circleci.com/gh/evanshortiss/obd-parser/tree/master)
 
 
-A module for interacting with the OBD (On Board Diagnostics) of vehicles 
+A module for interacting with the OBD (On Board Diagnostics) of vehicles
 via ELM 327 connections.
 
 ## Install
@@ -56,7 +56,7 @@ rpmPoller.on('data', function onPollerData (data) {
   console.log(data.byteString) // The bytes the ECU sent us e.g 410C1B56
 });
 
-// Alternaively - add pollers by the PID assuming the module supports that PID.
+// Alternatively - add pollers by the PID assuming the module supports that PID.
 // Here we request the realtime rpm data
 var rpm = pollers.getPollerByPid('010C');
 rpm.on('data', onPollerData);
@@ -66,10 +66,10 @@ rpm.on('data', onPollerData);
 ## Supported PIDs
 Currently the module has support for a limited number of PIDs. PID support can
 easily be added by adding a new PID definition in _lib/pids/pids_. You can find
-information that will assist PID implementation on 
+information that will assist PID implementation on
 [this Wiki](https://en.wikipedia.org/wiki/OBD-II_PIDs).
 
-For the most up to date list see this 
+For the most up to date list see this
 [directory](https://github.com/evanshortiss/obd-reader/tree/master/lib/pids/pids),
 or the below list:
 
@@ -123,7 +123,7 @@ console.log(require('obd-parser').pollers.getPollerTypes());
 ```
 
 ##### getPoller(opts)
-Get a poller for a specfic sensor type. Pollers are cached, so successive 
+Get a poller for a specfic sensor type. Pollers are cached, so successive
 calls for the same poller will get the same instance returned.
 
 ```javascript
@@ -156,7 +156,7 @@ obd.pollers.removePoller(rpm);
 
 
 ### obd.pids
-This Object will allow you to interact with the supported PID definitions. Each 
+This Object will allow you to interact with the supported PID definitions. Each
 supported PID has an Object allocated to it. This Object defines the PID, it's
 name, bytes it returns, and the parsing logic for messages associated with that
 PID.
@@ -193,7 +193,7 @@ var fuelLevel = obd.pids.getByPid('2F');
 
 
 ### ECUPoller
-An is an Object that can be used to interact with a specific OBD data type. 
+An is an Object that can be used to interact with a specific OBD data type.
 
 These are returned by _pollers.getPoller_ as described earlier. You never need
 to use this constructor manually.
@@ -201,16 +201,16 @@ to use this constructor manually.
 Each ECUPoller is an _EventEmitter_ and can emit "data" and "error" events.
 
 ##### _onEcuData(data)
-The internal "data" event handler used by this item. You will not need to call 
+The internal "data" event handler used by this item. You will not need to call
 this directly.
 
 ##### _queuePoll(data)
-Function used internally to queue a request to the ECU. You can call this if 
-you want to and it will poll the ECU as soon as the next _refreshInterval_ time 
+Function used internally to queue a request to the ECU. You can call this if
+you want to and it will poll the ECU as soon as the next _refreshInterval_ time
 is reached.
 
 ##### startPollLoop()
-Start a poll loop. This will execute _n_ times per second, where _n_ is the 
+Start a poll loop. This will execute _n_ times per second, where _n_ is the
 _refreshRate_ passed in the ECUPoller constructor options.
 
 ##### stopPollLoop()

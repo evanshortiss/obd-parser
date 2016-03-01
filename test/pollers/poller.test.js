@@ -122,6 +122,27 @@ describe('pollers', function () {
         expect(spy.calledOnce).to.be.true;
         expect(spy.getCall(0).args[0].pretty).to.equal('1749.5rpm');
       });
+
+      it('should format the data correctly', function () {
+        var p = new ECUPoller({
+          refreshRate: 1,
+          constname: 'ENGINE_RPM'
+        });
+
+        var spy = sinon.spy();
+
+        var _dummyData = {
+          ts: 1456245202195,
+          value: 1749.5,
+          byteString: '41AA1B56',
+          byteGroups: ['41','AA','1B','56']
+        };
+
+        p.on('data', spy);
+        p._onEcuData(_dummyData);
+
+        expect(spy.called).to.be.false;
+      });
     });
 
     describe('#startPollLoop', function () {
