@@ -102,7 +102,7 @@ describe('pollers', function () {
     var dummyData = {
       ts: 1456245202195,
       value: 1749.5,
-      byteString: '410C1B56',
+      raw: '410C1B56',
       byteGroups: ['41','0C','1B','56']
     };
 
@@ -134,7 +134,7 @@ describe('pollers', function () {
         var _dummyData = {
           ts: 1456245202195,
           value: 1749.5,
-          byteString: '41AA1B56',
+          raw: '41AA1B56',
           byteGroups: ['41','AA','1B','56']
         };
 
@@ -182,7 +182,7 @@ describe('pollers', function () {
         expect(p.pollTimer).to.be.null;
         expect(p.polling).to.be.false;
       });
-    })
+    });
   });
 
 
@@ -192,7 +192,7 @@ describe('pollers', function () {
 
       // Return a dud connection
       c.setConnectorFn(function () {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function(resolve) {
           var _c = new EventEmitter();
 
           _c.write = function(str) {
@@ -212,13 +212,11 @@ describe('pollers', function () {
         constname: 'ENGINE_RPM'
       });
 
-      var pollSpy = sinon.spy();
-
       p.on('data', function (data) {
         expect(data).to.be.an('object');
         expect(data.value).to.equal(1749.5);
         expect(data.pretty).to.equal('1749.5rpm');
-        expect(data.byteString).to.equal('410C1B56');
+        expect(data.raw).to.equal('410C1B56');
         done();
       });
       p.poll();

@@ -23,23 +23,24 @@ describe('#OBDStreamParser', function () {
 
       setTimeout(function () {
         expect(spy.called).to.be.true;
-        expect(spy.args[0][0].value).to.equal(1749.5);
-        expect(spy.args[0][0].byteString).to.equal('410C1B56');
+        console.log('xxx', spy.args[1][0]);
+        expect(spy.args[1][0].value).to.equal(1749.5);
+        expect(spy.args[1][0].raw).to.equal('410C1B56');
         expect(
-          spy.args[0][0].byteGroups
+          spy.args[1][0].byteGroups
         ).to.deep.equal([ '41', '0C', '1B', '56' ]);
-        done()
+        done();
       })
     });
 
-    it('should not emit a data event due to lack of bytes', function () {
+    it('should emit a data event, even for non OBD data types', function () {
       var spy = sinon.spy();
 
       parser.on('data', spy);
 
       parser.write('SEARCHING...\r>', 'utf8', function () {});
 
-      expect(spy.called).to.be.false;
+      expect(spy.called).to.be.true;
     });
 
     it('should not emit a data event due incomplete input', function () {
@@ -63,7 +64,7 @@ describe('#OBDStreamParser', function () {
       expect(spy.called).to.be.true;
       expect(spy.getCall(0).args[0]).to.have.property('ts');
       expect(spy.getCall(0).args[0]).to.have.property('value');
-      expect(spy.getCall(0).args[0]).to.have.property('byteString');
+      expect(spy.getCall(0).args[0]).to.have.property('raw');
       expect(spy.getCall(0).args[0]).to.have.property('byteGroups');
       expect(spy.getCall(0).args[0]).to.have.property('error');
       expect(spy.getCall(0).args[0].value).to.be.null;
@@ -83,7 +84,7 @@ describe('#OBDStreamParser', function () {
       expect(spy.called).to.be.true;
       expect(spy.getCall(0).args[0]).to.have.property('ts');
       expect(spy.getCall(0).args[0]).to.have.property('value');
-      expect(spy.getCall(0).args[0]).to.have.property('byteString');
+      expect(spy.getCall(0).args[0]).to.have.property('raw');
       expect(spy.getCall(0).args[0]).to.have.property('byteGroups');
       expect(spy.getCall(0).args[0]).to.have.property('error');
       expect(spy.getCall(0).args[0].value).to.be.null;

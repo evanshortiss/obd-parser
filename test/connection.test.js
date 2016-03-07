@@ -19,7 +19,7 @@ describe('connection', function () {
   });
 
   function conFn (cfgFn) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve) {
       var ret = {
         write: writeSpy,
         pipe: pipeSpy
@@ -28,7 +28,7 @@ describe('connection', function () {
       cfgFn(ret);
 
       resolve(ret);
-    })
+    });
   }
 
   describe('#setConnectorFn', function () {
@@ -45,10 +45,10 @@ describe('connection', function () {
         .then(function (conn) {
           expect(conn.write).to.be.a('function');
           expect(writeSpy.called).to.be.true;
-          expect(writeSpy.firstCall.args[0]).to.equal('ATE0\r');
+          expect(writeSpy.firstCall.args[0]).to.equal('ATE00\r');
           done();
         })
-        .catch(done)
+        .catch(done);
     });
   });
 

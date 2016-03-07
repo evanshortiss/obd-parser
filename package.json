@@ -21,6 +21,7 @@
     "sinon": "^1.17.3"
   },
   "scripts": {
+    "unit": "env NODE_PATH=. mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\")",
     "lint": "npm run-script jshint && npm run-script linelint",
     "jshint": "jshint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
     "linelint": "linelint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
