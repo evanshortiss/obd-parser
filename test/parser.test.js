@@ -23,7 +23,6 @@ describe('#OBDStreamParser', function () {
 
       setTimeout(function () {
         expect(spy.called).to.be.true;
-        console.log('xxx', spy.args[1][0]);
         expect(spy.args[1][0].value).to.equal(1749.5);
         expect(spy.args[1][0].raw).to.equal('410C1B56');
         expect(
