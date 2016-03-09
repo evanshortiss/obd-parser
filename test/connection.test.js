@@ -68,7 +68,7 @@ describe('connection', function () {
       conMod.getConnection()
         .then(function (conn) {
           conn.write('RANDOM DATA');
-          parser.emit('data');
+          parser.emit('line-break');
           done();
         })
         .catch(done);

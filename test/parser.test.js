@@ -19,7 +19,7 @@ describe('#OBDStreamParser', function () {
 
       parser.on('data', spy);
 
-      parser.write('SEARCHING...\r>410C1B56\r\r>', 'utf8', function () {});
+      parser.write('SEARCHING...\r410C1B56\r\r>', 'utf8', function () {});
 
       setTimeout(function () {
         expect(spy.called).to.be.true;
@@ -29,7 +29,7 @@ describe('#OBDStreamParser', function () {
           spy.args[1][0].byteGroups
         ).to.deep.equal([ '41', '0C', '1B', '56' ]);
         done();
-      })
+      });
     });
 
     it('should emit a data event, even for non OBD data types', function () {

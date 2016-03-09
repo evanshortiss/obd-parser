@@ -98,7 +98,7 @@ describe('#PID', function () {
       var p = new PID({
         mode: constants.OBD_MESSAGE_TYPES.CURRENT_DATA,
         pid: undefined,
-        bytes: 2,
+        bytes: 1,
         name: 'rpm',
         min: 0,
         max: 100
