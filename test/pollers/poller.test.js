@@ -3,14 +3,13 @@
 var expect = require('chai').expect
   , EventEmitter = require('events').EventEmitter
   , sinon = require('sinon')
-  , Promise = require('bluebird')
-  , proxyquire = require('proxyquire');
+  , Promise = require('bluebird');
 
 describe('pollers', function () {
 
   var pollers = null;
   var ECUPoller = null;
-  var parser = null
+  var parser = null;
 
   // Ensure each test has a clean instance
   beforeEach(function () {
@@ -44,13 +43,13 @@ describe('pollers', function () {
       expect(function () {
         pollers.getPoller({
           constname: 'ENGINE_COOLANT_TEMPERATURE'
-        })
+        });
       }).to.throw('AssertionError');
     });
 
     it('should fail to get an ECUPoller due to missing opts', function () {
       expect(function () {
-        pollers.getPoller({})
+        pollers.getPoller({});
       }).to.throw('AssertionError');
     });
 
