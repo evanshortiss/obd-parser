@@ -30,7 +30,7 @@ This connector is not implemented yet.
 ```javascript
 var getObdConnector = require('obd-parser-serial-connection');
 var parser = require('obd-parser');
-var pollers = obd.pollers;
+var pollers = parser.pollers;
 
 // Intialise our module and pass a configured connection function
 parser.init({
@@ -49,18 +49,24 @@ var rpmPoller = pollers.getPoller({
   refreshRate: 3
 });
 
+// Continuosly poll (up to 3 times per second) for the vehicle's rpm
+rpmPoller.startPollLoop();
+
 rpmPoller.on('data', function onPollerData (data) {
   // Log the data Object returned by the poller
   console.log(data.value)      // The converted value e.g 4000
   console.log(data.pretty)     // The prettified value e.g 4000rpm
   console.log(data.byteString) // The bytes the ECU sent us e.g 410C1B56
 });
+```
 
-// Alternatively - add pollers by the PID assuming the module supports that PID.
-// Here we request the realtime rpm data
+
+Alternatively, you can add pollers by the PID assuming the module supports that
+PID. Here we request the realtime rpm data:
+
+```js
 var rpm = pollers.getPollerByPid('010C');
 rpm.on('data', onPollerData);
-
 ```
 
 ## Supported PIDs
