@@ -1,7 +1,7 @@
 # Tells the .editorconfg plugin to stop searching once it finds this file
 root = true
 
-[*]
+[*.ts]
 indent_size = 2
 indent_style = space
 charset = utf-8

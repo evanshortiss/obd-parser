@@ -6,7 +6,7 @@
  * @param  {String} byte
  * @return {Number}
  */
-var parseHexToDecimal = exports.parseHexToDecimal = function (byte) {
+export function parseHexToDecimal (byte: string) {
   return parseInt(byte, 16);
 };
 
@@ -16,14 +16,14 @@ var parseHexToDecimal = exports.parseHexToDecimal = function (byte) {
  * @param  {String} byte
  * @return {Number}
  */
-exports.percentage = function (byte) {
+export function percentage (byte: string) {
   return parseHexToDecimal(byte) * (100 / 255);
 };
 
-exports.coolantTemp = function (byte) {
+export function coolantTemp (byte: string) {
   return parseHexToDecimal(byte) - 40;
 };
 
-exports.rpm = function (byteA, byteB) {
+export function rpm (byteA: string, byteB: string) {
   return ((parseHexToDecimal(byteA) * 256) + parseHexToDecimal(byteB)) / 4;
 };

@@ -1,20 +1,19 @@
 'use strict';
 
-var Promise = require('bluebird')
-  , constants = require('./constants')
-  , log = require('fhlog').get('[connnection]')
-  , parser = require('./parser');
+import * as Promise from 'bluebird';
+import { OBD_OUTPUT_EOL } from './constants';
+import { getLogger } from './log';
+import { getParser } from './parser';
+import { OBDConnection } from './interfaces/obd-connection';
 
-var connectorFn = null;
+let connectorFn: Function;
+let log = getLogger(__filename);
 
 /**
- * Sets the connection to be used.
- * This should be passed a pre-configured
- *
- * @param {[type]} mod [description]
+ * Sets the connection to be used. This should be passed a pre-configured connector
  */
-exports.setConnectorFn = function (cFn) {
-  log.d('setting connnection function');
+export function setConnectorFn (cFn: Function) {
+  log.debug('setting connnection function');
   connectorFn = cFn;
 };
 
@@ -23,7 +22,13 @@ exports.setConnectorFn = function (cFn) {
  * Returns a pre-configured connection instance.
  * @return {OBDConnection}
  */
-exports.getConnection = function () {
+export function getConnection () {
+  if (!connectorFn) {
+    throw new Error(
+      'cannot get connection. please ensure connectorFn was passed to init'
+    );
+  }
+
   return connectorFn(configureConnection);
 };
 
@@ -32,41 +37,44 @@ exports.getConnection = function () {
  * We need to configure the given connection with some sensible defaults
  * and also optimisations to ensure best data transfer rates.
  *
- * @param {OBDConnection} conn A connection object from this module's "cousins"
+ * @param {OBDConnection} conn A connection object from this module's family
  */
-function configureConnection (conn) {
-  log.d('configuring obd connection');
+export function configureConnection (conn: OBDConnection) {
+  log.debug('configuring obd connection');
 
   // Need to ensure each line is terminated when written
-  var write = conn.write.bind(conn)
-    , queue = []
-    , locked = false;
+  let write:Function = conn.write.bind(conn);
+  let queue:Array<string> = [];
+  let locked:boolean = false;
 
-  function doWrite (msg) {
+  function doWrite (msg: string) {
     locked = true;
 
     // Need to write the number of expected replies
-    var replyCount = (msg.indexOf('AT') === 0) ? 0 : 1;
+    let replyCount:number = (msg.indexOf('AT') === 0) ? 0 : 1;
 
     // Generate the final message to be sent, e.g "ATE00\r"
     msg = msg
-      .concat(replyCount)
-      .concat(constants.OBD_OUTPUT_EOL);
+      .concat(replyCount.toString())
+      .concat(OBD_OUTPUT_EOL);
 
-    log.d('writing message %s', JSON.stringify(msg));
+    log.debug('writing message "%s", connection will lock', JSON.stringify(msg));
 
-    // When next "data" event is emitted by the parser we can send next message
+    // When next "line-break" event is emitted by the parser we can send next message
     // since we know it has been processed - we don't care about success etc
-    parser.once('line-break', function () {
-      var payload = queue.shift();
+    getParser().once('line-break', function () {
+      // Get next queued message (FIFO ordering)
+      let payload:string|undefined = queue.shift();
 
-      // Unlock the queue
       locked = false;
 
-      log.d('connection unlocked, writing queued payload: %s', payload);
+      log.debug('connection unlocked');
 
-      // Write a new message (FIFO)
-      conn.write(payload);
+      if (payload) {
+        log.debug('writing queued payload: "%s"', payload);
+        // Write a new message (FIFO)
+        conn.write(payload);
+      }
     });
 
     // Write the formatted message to the obd interface
@@ -74,11 +82,11 @@ function configureConnection (conn) {
   }
 
   // Overwrite the public write function with our own
-  conn.write = function _obdWrite (msg) {
+  conn.write = function _obdWrite (msg:string) {
     if (!locked && msg) {
       doWrite(msg);
     } else if (msg) {
-      log.d('queueing message %s', JSON.stringify(msg));
+      log.debug('queue is locked. queueing message %s', JSON.stringify(msg));
       queue.push(msg);
     }
   };
@@ -104,7 +112,7 @@ function configureConnection (conn) {
   conn.write('ATSP0');
 
   // Pipe all output from the serial connection to our parser
-  conn.on('data', parser.write.bind(parser));
+  conn.on('data', getParser().write.bind(getParser()));
 
   return Promise.resolve();
 }
