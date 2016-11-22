@@ -8,24 +8,12 @@ import * as Promise from 'bluebird';
 import * as pids from './pids/index';
 import { PID } from './pids/pid';
 import { getLogger } from './log';
-import { OBDOutput } from './interfaces/obd-ouput';
+import { OBDOutput } from './interfaces';
 
 let parser: OBDStreamParser;
 let log = getLogger(__filename);
 
-
-/**
- * Determines if the passed buffer/string has a delimeter
- * that indicates it has been completed.
- * @param   {String} data
- * @return  {Boolean}
- */
-function hasPrompt (data: string) {
-  // Basically, we check that the a newline has started
-  return data.indexOf(OBD_OUTPUT_DELIMETER) !== -1;
-}
-
-class OBDStreamParser extends Transform {
+export class OBDStreamParser extends Transform {
   private _buffer: string;
 
   public constructor () {
@@ -43,7 +31,7 @@ class OBDStreamParser extends Transform {
     let data = input.toString('utf8');
     let self = this;
 
-    log.debug('received data %s', JSON.stringify(data));
+    log.debug('received data %s', data);
 
     // Remove any linebreaks from input, and add to buffer. We need the double
     // escaped replace due to some data having extra back ticks...wtf
@@ -62,7 +50,7 @@ class OBDStreamParser extends Transform {
       let outputs: Array<string> = extractOutputStrings(self._buffer);
 
       // Trigger a "data" event for each valid hex output received
-      Promise.map(outputs, (o) => {
+      Promise.map(outputs, (o: string) => {
         return parseObdString(o)
           .then((parsed) => {
             self.emit('data', parsed);
@@ -82,6 +70,19 @@ class OBDStreamParser extends Transform {
       return;
     }
 }
+
+
+/**
+ * Determines if the passed buffer/string has a delimeter
+ * that indicates it has been completed.
+ * @param   {String} data
+ * @return  {Boolean}
+ */
+function hasPrompt (data: string) {
+  // Basically, we check that the a newline has started
+  return data.indexOf(OBD_OUTPUT_DELIMETER) !== -1;
+}
+
 
 /**
  * Commands can be separated on multiple lines, we need each line separately
@@ -172,11 +173,13 @@ function parseObdString (str: string) : Promise<OBDOutput> {
     let pid:PID|null = pids.getPidByPidCode(pidCode);
 
     if (pid) {
-      // We have a class that knows how to deal with this pid type!
+      // We have a class that knows how to deal with this pid output. Parse it!
       ret.value = pid.getValueForBytes(str);
       ret.pretty = pid.getFormattedValueForBytes(str);
+
       return Promise.resolve(ret);
     } else {
+      // Emit the data, but just the raw bytes
       return Promise.resolve(ret);
     }
   } else {
@@ -220,7 +223,7 @@ function getValueForPidFromPayload (bytes: Array<string>) : Promise<string> {
     });
 }
 
-export function getParser () : OBDStreamParser {
+export function getParser (): OBDStreamParser {
   if (parser) {
     return parser;
   } else {

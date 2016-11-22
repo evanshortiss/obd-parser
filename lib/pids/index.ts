@@ -3,7 +3,7 @@
 import { map, find, keys } from 'ramda';
 import { PID } from './pid';
 import PIDS = require('../pids');
-import { PIDInfo } from '../interfaces/pid-info';
+import { PIDInfo } from '../interfaces';
 
 /**
  * Allows us to get a PID instance by matching an output hex code to

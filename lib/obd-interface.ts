@@ -3,8 +3,22 @@
 import * as connection from './connection';
 import * as Promise from 'bluebird';
 import { getLogger } from './log';
+import * as pids from './pids/pid';
 
 let log = getLogger(__filename);
+
+/**
+ * Exports all PID classes for use
+ */
+export { pids as PIDS };
+
+/**
+ * Exports the ECUPoller class
+ */
+export { ECUPoller as ECUPoller } from './poller';
+
+export { OBDOutput, PIDInfo, OBDConnection } from './interfaces';
+
 
 /**
  * Initialises this module for usage (no shit - right?)

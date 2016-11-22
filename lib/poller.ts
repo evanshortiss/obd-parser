@@ -2,9 +2,10 @@
 
 import { getConnection } from './connection';
 import { EventEmitter } from 'events';
-import { PollerArgs } from './interfaces/poller-args';
+import { PollerArgs, OBDOutput, OBDConnection } from './interfaces';
 import { getParser } from './parser';
 import { getLogger } from './log';
+
 
 let log = getLogger(__filename);
 
@@ -15,7 +16,7 @@ let log = getLogger(__filename);
  *
  * @param {Object} opts
  */
-class ECUPoller extends EventEmitter {
+export class ECUPoller extends EventEmitter {
 
   private lastResponseTs: number|null;
   private lastPollTs: number|null;
@@ -32,10 +33,14 @@ class ECUPoller extends EventEmitter {
     this.pollTimer = null;
     this.polling = false;
 
+    log.info('created poller for %s', args.pid.getName());
+
     // We wait until the parser emits a data event. We only bind this
     // when we need it to reduce number of concurrent listeners
     getParser().on('data', this.onEcuData.bind(this));
   }
+
+  // on(event: 'data', listener: (output: OBDOutput) => void)
 
   /**
    * We want to get as close to the requested refresh rate as possible.
@@ -45,7 +50,7 @@ class ECUPoller extends EventEmitter {
    * @param  {Number} lastPollTs  The time we issued the last poll
    * @return {Number}
    */
-  getNextPollDelay () : number {
+  private getNextPollDelay () : number {
     log.debug(
       'getting poll time for %s (%s), using last time of %s vs now %s',
       this.args.pid.getName(),
@@ -101,7 +106,7 @@ class ECUPoller extends EventEmitter {
    * This method does not return data since ECUPollers are event based. To get
    * returned data listen to the 'data' event on the ECUPoller instance
    */
-  poll () {
+  public poll () {
     let self = this;
     let bytesToWrite:string = self.args.pid.getWriteString();
 
@@ -113,7 +118,7 @@ class ECUPoller extends EventEmitter {
       );
 
       // Track when we fired this poll
-      this.lastPollTs = Date.now();
+      self.lastPollTs = Date.now();
 
       // Now write our request to the ECU
       conn.write(bytesToWrite);
@@ -129,7 +134,7 @@ class ECUPoller extends EventEmitter {
       .catch(onPollError);
   }
 
-  startPolling () {
+  public startPolling () {
     log.info('start poll interval for %s', this.args.pid.getName());
 
     if (!this.polling) {
@@ -141,7 +146,7 @@ class ECUPoller extends EventEmitter {
     }
   }
 
-  stopPolling () {
+  public stopPolling () {
     log.info('cacelling poll interval for %s', this.args.pid.getName());
 
     this.polling = false;

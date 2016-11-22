@@ -4,7 +4,7 @@ import * as Promise from 'bluebird';
 import { OBD_OUTPUT_EOL } from './constants';
 import { getLogger } from './log';
 import { getParser } from './parser';
-import { OBDConnection } from './interfaces/obd-connection';
+import { OBDConnection } from './interfaces';
 
 let connectorFn: Function;
 let log = getLogger(__filename);
@@ -58,7 +58,7 @@ export function configureConnection (conn: OBDConnection) {
       .concat(replyCount.toString())
       .concat(OBD_OUTPUT_EOL);
 
-    log.debug('writing message "%s", connection will lock', JSON.stringify(msg));
+    log.debug('writing message "%s", connection will lock', msg);
 
     // When next "line-break" event is emitted by the parser we can send next message
     // since we know it has been processed - we don't care about success etc

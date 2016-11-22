@@ -6,7 +6,7 @@ import * as assert from 'assert';
 import * as conversions from './conversions';
 import { format } from 'util';
 import { OBD_MESSAGE_TYPES } from '../constants';
-import { PIDArgs } from '../interfaces/pid-args';
+import { PIDArgs } from '../interfaces';
 
 /**
  * Used to create PID instances that will parse OBD data
