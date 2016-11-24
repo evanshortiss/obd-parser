@@ -1,9 +1,9 @@
 
-import * as pino from 'pino';
+import * as bunyan from 'bunyan';
 
-export function getLogger (name: string):pino.Logger {
-  return pino({
-    name: name,
-    level: 'trace'
-  });
-};
+const logger:bunyan.Logger = bunyan.createLogger({
+  name: require('../package.json').name,
+  level: 'trace'
+});
+
+export default logger;

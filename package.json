@@ -1,6 +1,6 @@
 {
   "name": "obd-parser",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "OBD interface that can send and receive messages over a given connection.",
   "main": "dist/lib/obd-interface.js",
   "typings": "dist/lib/index.d.ts",
@@ -8,24 +8,19 @@
     "@types/bluebird": "~3.0.35",
     "@types/bunyan": "0.0.32",
     "@types/node": "~6.0.46",
-    "@types/pino": "~1.0.4",
     "@types/ramda": "0.0.2",
     "@types/verror": "~1.6.28",
     "bluebird": "~3.2.2",
-    "bunyan": "~1.8.4",
+    "bunyan": "~1.8.5",
     "case": "~1.4.2",
-    "chai": "~3.5.0",
-    "pino": "~3.0.1",
     "ramda": "~0.22.1",
-    "safejson": "~1.0.1",
     "verror": "~1.6.1"
   },
   "devDependencies": {
     "chai-as-promised": "~5.2.0",
     "dts-gen": "~0.4.17",
     "istanbul": "~0.4.2",
-    "jshint": "~2.9.1",
-    "linelint": "~1.0.0",
+    "linelint": "~1.0.1",
     "mocha": "~2.4.5",
     "obd-parser-serial-connection": "github:evanshortiss/obd-serial-connection",
     "proxyquire": "~1.7.4",
@@ -34,23 +29,23 @@
   },
   "scripts": {
     "example": "npm run compile && tsc example/poll-rpm.ts && node example/poll-rpm.js",
-    "compile": "tsc lib/obd-interface.ts --declaration",
-    "unit": "env NODE_PATH=. mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\")",
-    "lint": "npm run-script jshint && npm run-script linelint",
-    "jshint": "jshint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
-    "linelint": "linelint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
-    "check-coverage": "istanbul check-coverage --statements 90 --branches 90 --functions 90 --lines 90",
-    "test": "npm run-script lint && env NODE_PATH=. istanbul cover -x *.test.js _mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\") && npm run-script check-coverage"
+    "compile": "tsc lib/obd-interface.ts --declaration --outDir dist/",
+    "prepublish": "npm test && npm run compile",
+    "linelint": "linelint $(find lib/ -name \"*.ts\")",
+    "test": "npm run-script linelint"
   },
   "keywords": [
     "obd",
     "parser",
     "message",
     "obdii",
-    "obd2"
+    "obd2",
+    "elm",
+    "elm327",
+    "on board diagnostic"
   ],
   "author": "Evan Shortiss",
-  "license": "MIT",
+  "license": "GPL-v3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/evanshortiss/obd-parser.git"

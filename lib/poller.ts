@@ -4,10 +4,9 @@ import { getConnection } from './connection';
 import { EventEmitter } from 'events';
 import { PollerArgs, OBDOutput, OBDConnection } from './interfaces';
 import { getParser } from './parser';
-import { getLogger } from './log';
+import * as Promise from 'bluebird';
+import log from './log';
 
-
-let log = getLogger(__filename);
 
 /**
  * Constructor function to create a poller instance.
@@ -23,6 +22,7 @@ export class ECUPoller extends EventEmitter {
   private pollTimer: NodeJS.Timer|null;
   private polling: boolean;
   private args: PollerArgs;
+  private locked: boolean;
 
   public constructor (args: PollerArgs) {
     super();
@@ -32,15 +32,10 @@ export class ECUPoller extends EventEmitter {
     this.lastPollTs = null;
     this.pollTimer = null;
     this.polling = false;
+    this.locked = false;
 
     log.info('created poller for %s', args.pid.getName());
-
-    // We wait until the parser emits a data event. We only bind this
-    // when we need it to reduce number of concurrent listeners
-    getParser().on('data', this.onEcuData.bind(this));
   }
-
-  // on(event: 'data', listener: (output: OBDOutput) => void)
 
   /**
    * We want to get as close to the requested refresh rate as possible.
@@ -51,89 +46,167 @@ export class ECUPoller extends EventEmitter {
    * @return {Number}
    */
   private getNextPollDelay () : number {
-    log.debug(
-      'getting poll time for %s (%s), using last time of %s vs now %s',
-      this.args.pid.getName(),
-      this.lastPollTs,
-      Date.now()
-    );
-
     if (this.lastPollTs) {
-      // A poll has occurred earlier. If we're calling this function
+      log.debug(
+        'getting poll time for %s, using last time of %s vs now %s',
+        this.args.pid.getName(),
+        this.lastPollTs,
+        Date.now()
+      );
+
+      // A poll has occurred previously. If we're calling this function
       // before the max interval time is reached then we must wait n ms
       // where n is the difference between the max poll rate and last poll sent
       let delta:number = this.lastResponseTs - this.lastPollTs;
       return delta > this.args.interval ? 0 : this.args.interval - delta;
     } else {
-      // No previous poll occurred so can fire next one asap
+      // No previous poll has occurred yet so fire one right away
       return 0;
     }
   }
 
   /**
-   * Handler for data events emitted by teh ecu data parser.
-   * Should not be called directly.
-   * @param {Object} data
+   * Locks this poller to prevent it sending any more messages to the ECU
+   * @return {void}
    */
-  private onEcuData (data: OBDOutput) {
-    if (data.bytes.indexOf(this.args.pid.getPid()) === 2) {
-      // The emitted event is a match for this poller's PID
-      log.debug(
-        'parser emitted a data event for pid %s (%s)',
-        this.args.pid.getPid(),
-        this.args.pid.getName()
-      );
+  private lock () {
+    this.locked = true;
+  }
 
-      this.emit('data', data);
-    }
+  /**
+   * Unlocks this poller to allow it to send more messages to the ECU
+   * @return {void}
+   */
+  private unlock () {
+    this.locked = false;
+  }
 
-    // Track when we got this response
-    this.lastResponseTs = Date.now();
+  /**
+   * Returns a boolean, where true indicates this instance is locked
+   * @return {boolean}
+   */
+  private isLocked (): boolean {
+    return this.locked;
+  }
 
-    // If this poller is polling then queue the next poll
-    if (this.polling) {
-      this.pollTimer = global.setTimeout(
-        this.poll.bind(this),
-        this.getNextPollDelay()
-      );
-    }
-  };
+  /**
+   * Returns a boolean indicating if the provided OBDOutput is designated
+   * for this Poller instance
+   * @return {boolean}
+   */
+  private isMatchingPayload (data: OBDOutput) {
+    return data.bytes ?
+      data.bytes.indexOf(this.args.pid.getPid()) === 2 : false;
+  }
 
   /**
    * Polls the ECU for this specifc ECUPoller's PID. Use this if you want to
    * poll on demand rather than on an interval.
    *
-   * This method does not return data since ECUPollers are event based. To get
-   * returned data listen to the 'data' event on the ECUPoller instance
+   * This method returns a Promise, but you can also bind a handler for the
+   * "data" event if that is preferable.
    */
-  public poll () {
-    let self = this;
-    let bytesToWrite:string = self.args.pid.getWriteString();
+  public poll (): Promise <OBDOutput> {
+    const self = this;
 
-    function pollEcu (conn: OBDConnection) {
-      log.info(
-        'performing poll for %s, command is:',
-        self.args.pid.getName(),
-        bytesToWrite
+    if (self.isLocked()) {
+      log.warn(
+        'poll was called for poller %s, but it was locked!',
+        self.args.pid.getName()
       );
 
-      // Track when we fired this poll
-      self.lastPollTs = Date.now();
-
-      // Now write our request to the ECU
-      conn.write(bytesToWrite);
+      // Reject the promise with an error
+      return Promise.reject(
+        new Error(
+          self.args.pid.getName() + ' cannot poll() when isLocked() is true'
+        )
+      );
     }
 
-    function onPollError (err: any) {
-      log.error('failed to poll for %s', self.args.pid.getName());
-      self.emit('error', err);
-    }
+    return new Promise<OBDOutput>(function (resolve, reject) {
+      // Need to prevent sending multiple polls unless we get a response
+      self.lock();
 
-    getConnection()
-      .then(pollEcu)
-      .catch(onPollError);
+      // Generate the bytes to send to our ECU
+      const bytesToWrite:string = self.args.pid.getWriteString();
+
+      // Callback for when "data" is emitted by the OBDStreamParser
+      const handler:Function = function (output:OBDOutput) {
+        if (self.isMatchingPayload(output)) {
+          // Remove this listener since it has been called for our probe
+          getParser().removeListener('data', handler);
+
+          // The emitted event is a match for this poller's PID
+          log.debug(
+            'parser emitted a data event for pid %s (%s)',
+            self.args.pid.getPid(),
+            self.args.pid.getName()
+          );
+
+          // Let listeners know we got data
+          self.emit('data', output);
+
+          // Track when we got this response
+          self.lastResponseTs = Date.now();
+
+          // Polls can be queued since we got a response
+          self.unlock();
+
+          // If this poller is polling then queue the next poll
+          if (self.polling) {
+            self.pollTimer = global.setTimeout(
+              self.poll.bind(self),
+              self.getNextPollDelay()
+            );
+          }
+
+          resolve(output);
+        }
+      };
+
+      function pollEcu (conn: OBDConnection) {
+        log.info(
+          'performing poll for %s, command is:',
+          self.args.pid.getName(),
+          bytesToWrite
+        );
+
+        // listen for data events sicne we need to watch for
+        // this PID in responses
+        getParser().addListener('data', handler);
+
+        // Track when we fired this poll
+        self.lastPollTs = Date.now();
+
+        // Now write our request to the ECU
+        conn.write(bytesToWrite);
+      }
+
+      function onPollError (err: any) {
+        log.error('failed to poll for %s', self.args.pid.getName());
+
+        // Remove the listener, could cause nasty side effects if we forget!
+        getParser().removeListener('data', handler);
+
+        // No longer need to keep this poller locked
+        self.unlock();
+
+        self.emit('error', err);
+
+        reject(err);
+      }
+
+      getConnection()
+        .then(pollEcu)
+        .catch(onPollError);
+    });
   }
 
+  /**
+   * Starts this poller polling. This means it will poll at the interval
+   * defined in the args, or as close as possible to that
+   * @return {void}
+   */
   public startPolling () {
     log.info('start poll interval for %s', this.args.pid.getName());
 
@@ -146,6 +219,10 @@ export class ECUPoller extends EventEmitter {
     }
   }
 
+  /**
+   * Stops the polling process and cancels any polls about to be queued
+   * @return {void}
+   */
   public stopPolling () {
     log.info('cacelling poll interval for %s', this.args.pid.getName());
 

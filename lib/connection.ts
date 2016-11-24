@@ -2,15 +2,15 @@
 
 import * as Promise from 'bluebird';
 import { OBD_OUTPUT_EOL } from './constants';
-import { getLogger } from './log';
 import { getParser } from './parser';
 import { OBDConnection } from './interfaces';
+import log from './log';
 
 let connectorFn: Function;
-let log = getLogger(__filename);
 
 /**
- * Sets the connection to be used. This should be passed a pre-configured connector
+ * Sets the connection to be used. This should be passed a
+ * pre-configured connector
  */
 export function setConnectorFn (cFn: Function) {
   log.debug('setting connnection function');
@@ -60,8 +60,9 @@ export function configureConnection (conn: OBDConnection) {
 
     log.debug('writing message "%s", connection will lock', msg);
 
-    // When next "line-break" event is emitted by the parser we can send next message
-    // since we know it has been processed - we don't care about success etc
+    // When next "line-break" event is emitted by the parser we can send
+    // next message since we know it has been processed - we don't care
+    // about success etc
     getParser().once('line-break', function () {
       // Get next queued message (FIFO ordering)
       let payload:string|undefined = queue.shift();

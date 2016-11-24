@@ -7,11 +7,10 @@ import VError = require('verror');
 import * as Promise from 'bluebird';
 import * as pids from './pids/index';
 import { PID } from './pids/pid';
-import { getLogger } from './log';
+import log from './log';
 import { OBDOutput } from './interfaces';
 
 let parser: OBDStreamParser;
-let log = getLogger(__filename);
 
 export class OBDStreamParser extends Transform {
   private _buffer: string;
@@ -53,7 +52,9 @@ export class OBDStreamParser extends Transform {
       Promise.map(outputs, (o: string) => {
         return parseObdString(o)
           .then((parsed) => {
-            self.emit('data', parsed);
+            if (parsed) {
+              self.emit('data', parsed);
+            }
           })
           .catch((err) => {
             self.emit('error', err);
@@ -90,13 +91,19 @@ function hasPrompt (data: string) {
  * @return {Array}
  */
 function extractOutputStrings (buffer: string) {
-  log.debug('extracting command strings from buffer %s', JSON.stringify(buffer));
+  log.debug(
+    'extracting command strings from buffer %s',
+    JSON.stringify(buffer)
+  );
 
   // Extract multiple commands if they exist in the String by replacing
   // linebreaks and splitting on the newline delimeter
   // We replace double backticks. They only seem to occur in a test case
   // but we need to deal with it anyway, just in case...
-  let cmds: Array<string> = buffer.replace(/\n/g, '').replace(/\\r/g, '\r').split(/\r/g);
+  let cmds: Array<string> = buffer
+    .replace(/\n/g, '')
+    .replace(/\\r/g, '\r')
+    .split(/\r/g);
 
   // Remove the new prompt char
   cmds = R.map((c:string) => {
@@ -111,7 +118,11 @@ function extractOutputStrings (buffer: string) {
     return !R.isEmpty(c);
   }, cmds);
 
-  log.debug('extracted strings %s from buffer %s', JSON.stringify(cmds), buffer);
+  log.debug(
+    'extracted strings %s from buffer %s',
+    JSON.stringify(cmds),
+    buffer
+  );
 
   return cmds;
 }
@@ -146,7 +157,7 @@ function getByteGroupings (str: string) : Array<string>|null {
  * @param  {String} str
  * @return {Object}
  */
-function parseObdString (str: string) : Promise<OBDOutput> {
+function parseObdString (str: string) : Promise<OBDOutput|null> {
   log.debug('parsing command string %s', str);
 
   let bytes = getByteGroupings(str);
@@ -159,7 +170,10 @@ function parseObdString (str: string) : Promise<OBDOutput> {
   };
 
   if (!isHex(str)) {
-    log.debug('received generic (non hex) string output "%s", not parsing', str);
+    log.debug(
+      'received generic (non hex) string output "%s", not parsing',
+      str
+    );
     return Promise.resolve(ret);
   } else if (bytes && bytes[0] === OBD_OUTPUT_MESSAGE_TYPES.MODE_01) {
     log.debug(
@@ -183,9 +197,9 @@ function parseObdString (str: string) : Promise<OBDOutput> {
       return Promise.resolve(ret);
     }
   } else {
-    return Promise.reject(
-      new VError('malformed response received from OBD; "%s"', str)
-    );
+    // Wasn't a recognised message type - was probably our own bytes
+    // since the serial module outputs those as "data" for some reason
+    return Promise.resolve(null);
   }
 }
 
@@ -216,7 +230,10 @@ function getValueForPidFromPayload (bytes: Array<string>) : Promise<string> {
       }
 
       // Depending on the payload type we only parse a certain number of bytes
-      let bytesToParse: Array<string> = bytes.slice(2, pid.getParseableByteCount());
+      let bytesToParse: Array<string> = bytes.slice(
+        2,
+        pid.getParseableByteCount()
+      );
 
       // TODO: method overloading vs. apply? TS/JS (-_-)
       return pid.getValueForBytes.apply(pid, bytesToParse);

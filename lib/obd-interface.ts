@@ -2,21 +2,19 @@
 
 import * as connection from './connection';
 import * as Promise from 'bluebird';
-import { getLogger } from './log';
-import * as pids from './pids/pid';
+import * as PIDS from './pids/pid';
+import log from './log';
 
-let log = getLogger(__filename);
+// Logger instance exposed so it can be configured as necessary
+export { default as logger } from './log';
 
-/**
- * Exports all PID classes for use
- */
-export { pids as PIDS };
+// Export all PIDS so they can be passed to an ECUPoller
+export { PIDS as PIDS };
 
-/**
- * Exports the ECUPoller class
- */
+// Just export the vanilla ECUPoller class
 export { ECUPoller as ECUPoller } from './poller';
 
+// Interfaces
 export { OBDOutput, PIDInfo, OBDConnection } from './interfaces';
 
 
