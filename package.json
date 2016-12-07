@@ -1,42 +1,54 @@
 {
   "name": "obd-parser",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "OBD interface that can send and receive messages over a given connection.",
-  "main": "lib/obd-interface.js",
+  "main": "dist/obd-interface.js",
+  "typings": "dist/obd-interface.d.ts",
   "dependencies": {
-    "bluebird": "^3.2.2",
-    "case": "^1.4.1",
-    "chai": "^3.5.0",
-    "fhlog": "^0.12.1",
-    "lodash": "^4.5.0",
-    "verror": "^1.6.1"
+    "bluebird": "~3.2.2",
+    "case": "~1.4.2",
+    "debug": "~2.3.3",
+    "ramda": "~0.22.1",
+    "verror": "~1.6.1"
   },
   "devDependencies": {
-    "chai-as-promised": "^5.2.0",
-    "istanbul": "^0.4.2",
-    "jshint": "^2.9.1",
-    "linelint": "^1.0.0",
-    "mocha": "^2.4.5",
-    "proxyquire": "^1.7.4",
-    "sinon": "^1.17.3"
+    "@types/core-js": "~0.9.35",
+    "@types/debug": "0.0.29",
+    "@types/bluebird": "~3.0.35",
+    "@types/node": "~6.0.46",
+    "@types/ramda": "0.0.2",
+    "@types/verror": "~1.6.28",
+    "chai-as-promised": "~5.2.0",
+    "dts-gen": "~0.4.17",
+    "istanbul": "~0.4.2",
+    "linelint": "~1.0.1",
+    "mocha": "~2.4.5",
+    "obd-parser-fake-connection": "github:evanshortiss/obd-parser-fake-connection",
+    "obd-parser-serial-connection": "github:evanshortiss/obd-serial-connection",
+    "proxyquire": "~1.7.4",
+    "sinon": "~1.17.3",
+    "typescript": "~2.0.10"
   },
   "scripts": {
-    "unit": "env NODE_PATH=. mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\")",
-    "lint": "npm run-script jshint && npm run-script linelint",
-    "jshint": "jshint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
-    "linelint": "linelint $(find . -name \"*.js\" -not -path \"*/test/*\" -not -path \"*/coverage/*\" -not -path \"*/node_modules/*\")",
-    "check-coverage": "istanbul check-coverage --statements 90 --branches 90 --functions 90 --lines 90",
-    "test": "npm run-script lint && env NODE_PATH=. istanbul cover -x *.test.js _mocha $(find . -name \"*.test.js\" -not -path \"*/node_modules/*\") && npm run-script check-coverage"
+    "example": "npm run compile && tsc example/poll-rpm.ts && node example/poll-rpm.js",
+    "example-fake": "npm run compile && tsc example/poll-fake.ts && node example/poll-fake.js",
+    "compile": "tsc lib/obd-interface.ts --declaration --outDir dist/",
+    "prepublish": "npm test && npm run compile",
+    "linelint": "linelint $(find lib/ -name \"*.ts\")",
+    "test": "echo \"Tests needed...\" && npm run-script linelint"
   },
   "keywords": [
     "obd",
     "parser",
     "message",
     "obdii",
-    "obd2"
+    "obd2",
+    "elm",
+    "elm327",
+    "on board diagnostic"
   ],
   "author": "Evan Shortiss",
-  "license": "MIT",
+  "license": "GPL-v3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/evanshortiss/obd-parser.git"
