@@ -7,7 +7,7 @@ import VError = require('verror');
 import * as Promise from 'bluebird';
 import * as pids from './pids/index';
 import { PID } from './pids/pid';
-import log from './log';
+import log = require('./log');
 import { OBDOutput } from './interfaces';
 
 let parser: OBDStreamParser;
@@ -30,17 +30,17 @@ export class OBDStreamParser extends Transform {
     let data = input.toString('utf8');
     let self = this;
 
-    log.debug('received data %s', data);
+    log('received data %s', data);
 
     // Remove any linebreaks from input, and add to buffer. We need the double
     // escaped replace due to some data having extra back ticks...wtf
     self._buffer += data;
 
-    log.debug('current buffer: %s', JSON.stringify(self._buffer));
+    log('current buffer: %s', JSON.stringify(self._buffer));
 
     if (hasPrompt(self._buffer)) {
       // We have a full output from the OBD interface e.g "410C1B56\r\r>"
-      log.debug('serial output completed. parsing');
+      log('serial output completed. parsing');
 
       // Let listeners know that they can start to write again
       self.emit('line-break');
@@ -65,7 +65,7 @@ export class OBDStreamParser extends Transform {
           self._flush(done);
         });
     } else {
-      log.debug('data was not a complete output');
+      log('data was not a complete output');
       done();
     }
       return;
@@ -91,7 +91,7 @@ function hasPrompt (data: string) {
  * @return {Array}
  */
 function extractOutputStrings (buffer: string) {
-  log.debug(
+  log(
     'extracting command strings from buffer %s',
     JSON.stringify(buffer)
   );
@@ -118,7 +118,7 @@ function extractOutputStrings (buffer: string) {
     return !R.isEmpty(c);
   }, cmds);
 
-  log.debug(
+  log(
     'extracted strings %s from buffer %s',
     JSON.stringify(cmds),
     buffer
@@ -145,7 +145,7 @@ function isHex (str: string) {
  * @return {Array|null}
  */
 function getByteGroupings (str: string) : Array<string>|null {
-  log.debug('extracting byte groups from %s', JSON.stringify(str));
+  log('extracting byte groups from %s', JSON.stringify(str));
 
   // Remove white space (if any exists) and get byte groups as pairs
   return str.replace(/\ /g, '').match(/.{1,2}/g);
@@ -158,7 +158,7 @@ function getByteGroupings (str: string) : Array<string>|null {
  * @return {Object}
  */
 function parseObdString (str: string) : Promise<OBDOutput|null> {
-  log.debug('parsing command string %s', str);
+  log('parsing command string %s', str);
 
   let bytes = getByteGroupings(str);
 
@@ -170,13 +170,13 @@ function parseObdString (str: string) : Promise<OBDOutput|null> {
   };
 
   if (!isHex(str)) {
-    log.debug(
+    log(
       'received generic (non hex) string output "%s", not parsing',
       str
     );
     return Promise.resolve(ret);
   } else if (bytes && bytes[0] === OBD_OUTPUT_MESSAGE_TYPES.MODE_01) {
-    log.debug(
+    log(
       'received valid output "%s" of type "%s", parsing',
       str,
       OBD_OUTPUT_MESSAGE_TYPES.MODE_01
@@ -188,8 +188,13 @@ function parseObdString (str: string) : Promise<OBDOutput|null> {
 
     if (pid) {
       // We have a class that knows how to deal with this pid output. Parse it!
-      ret.value = pid.getValueForBytes(str);
-      ret.pretty = pid.getFormattedValueForBytes(str);
+      ret.pretty = pid.getFormattedValueForBytes(bytes);
+
+      // pass all bytes returned and have the particular PID figure it out
+      ret.value = pid.getValueForBytes(bytes.slice(0));
+
+      ret.name = pid.getName();
+      ret.pid = pid.getPid()
 
       return Promise.resolve(ret);
     } else {
@@ -210,7 +215,7 @@ function parseObdString (str: string) : Promise<OBDOutput|null> {
  * @return {Mixed}
  */
 function getValueForPidFromPayload (bytes: Array<string>) : Promise<string> {
-  log.debug('parsing a realtime command with bytes', bytes.join());
+  log('parsing a realtime command with bytes', bytes.join());
 
   let pidType: string = bytes[1];
 

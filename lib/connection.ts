@@ -4,16 +4,17 @@ import * as Promise from 'bluebird';
 import { OBD_OUTPUT_EOL } from './constants';
 import { getParser } from './parser';
 import { OBDConnection } from './interfaces';
-import log from './log';
+import log = require('./log');
 
 let connectorFn: Function;
+let connection:OBDConnection|null = null;
 
 /**
  * Sets the connection to be used. This should be passed a
  * pre-configured connector
  */
 export function setConnectorFn (cFn: Function) {
-  log.debug('setting connnection function');
+  log('setting connnection function');
   connectorFn = cFn;
 };
 
@@ -29,6 +30,11 @@ export function getConnection () {
     );
   }
 
+  if (connection) {
+    return Promise.resolve(connection);
+  }
+
+  log('getting connnection');
   return connectorFn(configureConnection);
 };
 
@@ -40,7 +46,9 @@ export function getConnection () {
  * @param {OBDConnection} conn A connection object from this module's family
  */
 export function configureConnection (conn: OBDConnection) {
-  log.debug('configuring obd connection');
+  log('configuring obd connection');
+
+  connection = conn;
 
   // Need to ensure each line is terminated when written
   let write:Function = conn.write.bind(conn);
@@ -58,7 +66,7 @@ export function configureConnection (conn: OBDConnection) {
       .concat(replyCount.toString())
       .concat(OBD_OUTPUT_EOL);
 
-    log.debug('writing message "%s", connection will lock', msg);
+    log('writing message "%s", connection will lock', msg);
 
     // When next "line-break" event is emitted by the parser we can send
     // next message since we know it has been processed - we don't care
@@ -69,10 +77,10 @@ export function configureConnection (conn: OBDConnection) {
 
       locked = false;
 
-      log.debug('connection unlocked');
+      log('connection unlocked');
 
       if (payload) {
-        log.debug('writing queued payload: "%s"', payload);
+        log('writing queued payload: "%s"', payload);
         // Write a new message (FIFO)
         conn.write(payload);
       }
@@ -87,10 +95,13 @@ export function configureConnection (conn: OBDConnection) {
     if (!locked && msg) {
       doWrite(msg);
     } else if (msg) {
-      log.debug('queue is locked. queueing message %s', JSON.stringify(msg));
+      log('queue is locked. queueing message %s', JSON.stringify(msg));
       queue.push(msg);
     }
   };
+
+  // Pipe all output from the serial connection to our parser
+  conn.on('data', getParser().write.bind(getParser()));
 
   // Configurations below are from node-serial-obd and python-OBD
 
@@ -112,8 +123,5 @@ export function configureConnection (conn: OBDConnection) {
   // seems to have issues. Maybe this should be an option we can pass?
   conn.write('ATSP0');
 
-  // Pipe all output from the serial connection to our parser
-  conn.on('data', getParser().write.bind(getParser()));
-
-  return Promise.resolve();
+  return Promise.resolve(conn);
 }

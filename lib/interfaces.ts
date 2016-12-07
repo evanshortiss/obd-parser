@@ -9,7 +9,9 @@ export interface OBDOutput {
   ts: Date
   value: any|null,
   pretty: string|null,
-  bytes: string
+  bytes: string,
+  name?: string,
+  pid?: string
 }
 
 export interface PIDArgs {
@@ -30,5 +32,5 @@ export interface PIDInfo {
 
 export interface PollerArgs {
   pid: PID,
-  interval: number
+  interval: number|null
 }

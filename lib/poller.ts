@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 import { PollerArgs, OBDOutput, OBDConnection } from './interfaces';
 import { getParser } from './parser';
 import * as Promise from 'bluebird';
-import log from './log';
+import log = require('./log');
 
 
 /**
@@ -34,7 +34,7 @@ export class ECUPoller extends EventEmitter {
     this.polling = false;
     this.locked = false;
 
-    log.info('created poller for %s', args.pid.getName());
+    log('created poller for %s', args.pid.getName());
   }
 
   /**
@@ -47,7 +47,7 @@ export class ECUPoller extends EventEmitter {
    */
   private getNextPollDelay () : number {
     if (this.lastPollTs) {
-      log.debug(
+      log(
         'getting poll time for %s, using last time of %s vs now %s',
         this.args.pid.getName(),
         this.lastPollTs,
@@ -110,7 +110,7 @@ export class ECUPoller extends EventEmitter {
     const self = this;
 
     if (self.isLocked()) {
-      log.warn(
+      log(
         'poll was called for poller %s, but it was locked!',
         self.args.pid.getName()
       );
@@ -137,7 +137,7 @@ export class ECUPoller extends EventEmitter {
           getParser().removeListener('data', handler);
 
           // The emitted event is a match for this poller's PID
-          log.debug(
+          log(
             'parser emitted a data event for pid %s (%s)',
             self.args.pid.getPid(),
             self.args.pid.getName()
@@ -165,7 +165,7 @@ export class ECUPoller extends EventEmitter {
       };
 
       function pollEcu (conn: OBDConnection) {
-        log.info(
+        log(
           'performing poll for %s, command is:',
           self.args.pid.getName(),
           bytesToWrite
@@ -183,7 +183,7 @@ export class ECUPoller extends EventEmitter {
       }
 
       function onPollError (err: any) {
-        log.error('failed to poll for %s', self.args.pid.getName());
+        log('failed to poll for %s', self.args.pid.getName());
 
         // Remove the listener, could cause nasty side effects if we forget!
         getParser().removeListener('data', handler);
@@ -208,7 +208,7 @@ export class ECUPoller extends EventEmitter {
    * @return {void}
    */
   public startPolling () {
-    log.info('start poll interval for %s', this.args.pid.getName());
+    log('start poll interval for %s', this.args.pid.getName());
 
     if (!this.polling) {
       this.polling = true;
@@ -224,7 +224,7 @@ export class ECUPoller extends EventEmitter {
    * @return {void}
    */
   public stopPolling () {
-    log.info('cacelling poll interval for %s', this.args.pid.getName());
+    log('cacelling poll interval for %s', this.args.pid.getName());
 
     this.polling = false;
 

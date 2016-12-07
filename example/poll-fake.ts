@@ -3,18 +3,10 @@
 import * as OBD from '../lib/obd-interface';
 
 // Use a serial connection to connect
-var getConnector = require('obd-parser-serial-connection');
+var getConnector = require('obd-parser-fake-connection');
 
 // Returns a function that will allow us to connect to the serial port
-var connect:Function = getConnector({
-  // This might vary based on OS - this is the Mac OSX example
-  serialPath: '/dev/tty.usbserial',
-
-  // Might vary based on vehicle. This is the baudrate for a MK6 VW GTI
-  serialOpts: {
-    baudrate: 38400
-  }
-});
+var connect:Function = getConnector({});
 
 // Need to initialise the OBD module with a "connector" before starting
 OBD.init(connect)
@@ -22,7 +14,7 @@ OBD.init(connect)
     // We've successfully connected. Can now create ECUPoller instances
     const rpmPoller:OBD.ECUPoller = new OBD.ECUPoller({
       // Pass an instance of the RPM PID to poll for RPM
-      pid: new OBD.PIDS.Rpm(),
+      pid: new OBD.PIDS.FuelLevel(),
       // Poll every 1500 milliseconds
       interval: 1500
     });
@@ -34,10 +26,10 @@ OBD.init(connect)
 
     // Bind an event handler for anytime RPM data is available
     rpmPoller.on('data', function (output: OBD.OBDOutput) {
-      console.log('\n==== Got RPM Output ====');
+      console.log('\n==== Got FuelLevel Output ====');
       // Timestamp (Date object) for wheb the response was received
       console.log('time: ', output.ts);
-      // The bytes returned from the ECU when asked from RPM
+      // The bytes returned from the ECU when asked from FuelLevel
       console.log('bytes: ', output.bytes);
       // A value that's usuall numeric e.g 1200
       console.log('value: ', output.value);

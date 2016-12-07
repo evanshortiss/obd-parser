@@ -3,12 +3,9 @@
 import * as connection from './connection';
 import * as Promise from 'bluebird';
 import * as PIDS from './pids/pid';
-import log from './log';
+import log = require('./log');
 
-// Logger instance exposed so it can be configured as necessary
-export { default as logger } from './log';
-
-// Export all PIDS so they can be passed to an ECUPoller
+// Export all PIDS classes so they can be passed to an ECUPoller
 export { PIDS as PIDS };
 
 // Just export the vanilla ECUPoller class
@@ -24,7 +21,7 @@ export { OBDOutput, PIDInfo, OBDConnection } from './interfaces';
  * @return {Promise}
  */
 export function init (connectorFn: Function) : Promise<void> {
-  log.info('initialising obd-parser');
+  log('initialising obd-parser');
 
   // Expose the connection we've been passed
   connection.setConnectorFn(connectorFn);
@@ -35,6 +32,6 @@ export function init (connectorFn: Function) : Promise<void> {
 
 
   function onInitialiseSuccess () {
-    log.info('initialised successfully');
+    log('initialised successfully');
   }
 };

@@ -19,11 +19,3 @@ export function parseHexToDecimal (byte: string) {
 export function percentage (byte: string) {
   return parseHexToDecimal(byte) * (100 / 255);
 };
-
-export function coolantTemp (byte: string) {
-  return parseHexToDecimal(byte) - 40;
-};
-
-export function rpm (byteA: string, byteB: string) {
-  return ((parseHexToDecimal(byteA) * 256) + parseHexToDecimal(byteB)) / 4;
-};

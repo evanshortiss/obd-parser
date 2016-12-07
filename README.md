@@ -57,7 +57,7 @@ OBD.init(connectorFn)
 
     // Bind an event handler for anytime RPM data is available
     rpmPoller.on('data', function (output: OBD.OBDOutput) {
-      console.log('==== Got RPM Ouput ====');
+      console.log('==== Got RPM Output ====');
       // Timestamp (Date object) for wheb the response was received
       console.log('time: ', output.ts);
       // The bytes returned from the ECU when asked from RPM
@@ -109,7 +109,7 @@ an args Object that contains:
 _startPolling()_ is called.
 
 You should only create one instance of a given ECUPoller and PID combination
-at a time unless you're sure about what you're doing.
+at a time unless you're sure about what you're doing. 
 
 #### ECUPoller.poll()
 Sends a poll to the ECU for this ECUPoller's PID. Returns Promise that will
@@ -171,7 +171,7 @@ OBD.init(connect)
     });
 
     rpmPoller.on('data', function (output) {
-      console.log('==== Got RPM Ouput ====');
+      console.log('==== Got RPM Output ====');
       console.log('time: ', output.ts);
       console.log('bytes: ', output.bytes);
       console.log('value: ', output.value);

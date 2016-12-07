@@ -9,15 +9,27 @@ import { OBD_MESSAGE_TYPES } from '../constants';
 import { PIDArgs } from '../interfaces';
 
 /**
+ * Parses a hexadecimal string to regular base 10
+ * @param  {String} byte
+ * @return {Number}
+ */
+function parseHexToDecimal (byte: string) {
+  return parseInt(byte, 16);
+}
+
+/**
  * Used to create PID instances that will parse OBD data
  * @constructor
  * @param {Object} opts
  */
-export class PID {
+export abstract class PID {
 
   private constname: string;
   private fullpid: string;
   private opts: PIDArgs;
+
+  protected maxRandomValue: number = 0;
+  protected minRandomValue: number = 255;
 
   public constructor (opts: PIDArgs) {
     assert(opts.bytes > 0, 'opts.bytes for PID must be above 0');
@@ -27,6 +39,18 @@ export class PID {
 
     // Save these for use
     this.opts = opts;
+  }
+
+  protected getRandomInt (min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  public getRandomBytes (min?: number, max?: number): string[] {
+    min = min || this.minRandomValue;
+    max = max || this.maxRandomValue;
+
+    // ensure random value is int, then convert to hex
+    return [this.getRandomInt(min, max).toString(16)];
   }
 
   public getName () {
@@ -56,7 +80,7 @@ export class PID {
    * @param  {Number} value
    * @return {String}
    */
-  public getFormattedValueForBytes (bytes: string) : string {
+  public getFormattedValueForBytes (bytes: string[]) : string {
     let val:number = this.getValueForBytes(bytes);
 
     if (this.opts.unit) {
@@ -86,10 +110,8 @@ export class PID {
    *
    * @return {Number}
    */
-  public getValueForBytes (bytes: string) : number {
-    return conversions.parseHexToDecimal(
-      this.getByteGroupings(bytes)[1]
-    );
+  public getValueForBytes (bytes:string[]) : number {
+    return conversions.parseHexToDecimal(bytes[1]);
   }
 
 
@@ -123,8 +145,8 @@ export class FuelLevel extends PID {
     })
   }
 
-  public getValueForBytes (byte: string) {
-    return conversions.percentage(byte);
+  public getValueForBytes (bytes: string[]): number {
+    return conversions.percentage(bytes[2]);
   }
 }
 
@@ -141,12 +163,23 @@ export class Rpm extends PID {
     })
   }
 
-  // public getValueForBytes (byteA: string, byteB: string) {
-  //   return conversions.rpm(byteA, byteB);
-  // }
+  public getValueForBytes (bytes: string[]): number {
+    const a:number = parseHexToDecimal(bytes[2]) * 256;
+    const b:number = parseHexToDecimal(bytes[3]);
+
+    return (a + b) / 4;
+  }
+
+  public getRandomBytes (): string[] {
+    // ensure random value is int, then convert to hex
+    return [
+      this.getRandomInt(0, 255).toString(16),
+      this.getRandomInt(0, 255).toString(16)
+    ];
+  }
 }
 
-export class VehicleSpeed extends PID {
+export class CoolantTemp extends PID {
   constructor () {
     super({
       mode: OBD_MESSAGE_TYPES.CURRENT_DATA,
@@ -156,15 +189,18 @@ export class VehicleSpeed extends PID {
       min: -40,
       max: 215,
       unit: '°C'
-    })
+    });
+
+    this.minRandomValue = 0;
+    this.maxRandomValue = 255; // only a litte too fast...
   }
 
-  public getValueForBytes (byte: string) {
-    return conversions.parseHexToDecimal(byte);
+  public getValueForBytes (byte: string[]): number {
+    return parseHexToDecimal(byte[2]) - 40;
   }
 }
 
-export class CoolantTemp extends PID {
+export class VehicleSpeed extends PID {
   constructor () {
     super({
       mode: OBD_MESSAGE_TYPES.CURRENT_DATA,
@@ -175,9 +211,12 @@ export class CoolantTemp extends PID {
       max: 255,
       unit: 'km/h'
     })
+
+    this.minRandomValue = 0;
+    this.maxRandomValue = 255; // seems pretty reasonable as a max...
   }
 
-  public getValueForBytes (byte: string) {
-    return conversions.coolantTemp(byte);
+  public getValueForBytes (bytes: string[]): number {
+    return parseHexToDecimal(bytes[2]);
   }
 }

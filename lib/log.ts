@@ -1,9 +1,6 @@
 
-import * as bunyan from 'bunyan';
+import * as debug from 'debug';
 
-const logger:bunyan.Logger = bunyan.createLogger({
-  name: require('../package.json').name,
-  level: 'trace'
-});
+let logger:debug.IDebugger = debug(require('../package.json').name);
 
-export default logger;
+export = logger;
