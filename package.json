@@ -12,9 +12,9 @@
     "verror": "~1.6.1"
   },
   "devDependencies": {
+    "@types/bluebird": "~3.0.35",
     "@types/core-js": "~0.9.35",
     "@types/debug": "0.0.29",
-    "@types/bluebird": "~3.0.35",
     "@types/node": "~6.0.46",
     "@types/ramda": "0.0.2",
     "@types/verror": "~1.6.28",
@@ -23,8 +23,8 @@
     "istanbul": "~0.4.2",
     "linelint": "~1.0.1",
     "mocha": "~2.4.5",
-    "obd-parser-fake-connection": "github:evanshortiss/obd-parser-fake-connection",
-    "obd-parser-serial-connection": "github:evanshortiss/obd-serial-connection",
+    "obd-parser-development-connection": "~0.1.0",
+    "obd-parser-serial-connection": "~0.1.1",
     "proxyquire": "~1.7.4",
     "sinon": "~1.17.3",
     "typescript": "~2.0.10"
@@ -48,7 +48,7 @@
     "on board diagnostic"
   ],
   "author": "Evan Shortiss",
-  "license": "GPL-v3.0",
+  "license": "GPL-3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/evanshortiss/obd-parser.git"

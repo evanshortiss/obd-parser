@@ -3,7 +3,7 @@
 import * as OBD from '../lib/obd-interface';
 
 // Use a serial connection to connect
-var getConnector = require('obd-parser-fake-connection');
+var getConnector = require('obd-parser-development-connection');
 
 // Returns a function that will allow us to connect to the serial port
 var connect:Function = getConnector({});
