@@ -184,6 +184,9 @@ OBD.init(connect)
 
 # CHANGELOG
 
+* 0.2.1
+  * Ensure definition files are included in published code
+
 * 0.2.0
   * Rewrite using TypeScript and Classes (inner conflict regarding Classes)
   * Simplify getting and creating ECUPollers and PIDS

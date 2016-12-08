@@ -2,9 +2,6 @@ node_modules/
 *.log
 .DS_Store
 
-# ignore ts files for publishing 
-*.ts
-
 lib/
 tsconfig.json
 tslint.json
