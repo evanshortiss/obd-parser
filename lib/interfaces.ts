@@ -7,7 +7,7 @@ export interface OBDConnection {
 
 export interface OBDOutput {
   ts: Date
-  value: any|null,
+  value: any|string|null,
   pretty: string|null,
   bytes: string,
   name?: string,
@@ -19,8 +19,8 @@ export interface PIDArgs {
   mode: string,
   bytes: number,
   name: string,
-  min: number,
-  max: number,
+  min?: number,
+  max?: number,
   unit: string
 }
 

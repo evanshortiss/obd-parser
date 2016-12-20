@@ -187,6 +187,7 @@ function parseObdString (str: string) : Promise<OBDOutput|null> {
     let pid:PID|null = pids.getPidByPidCode(pidCode);
 
     if (pid) {
+      log('found match for pid %s', pidCode);
       // We have a class that knows how to deal with this pid output. Parse it!
       ret.pretty = pid.getFormattedValueForBytes(bytes);
 
@@ -198,6 +199,7 @@ function parseObdString (str: string) : Promise<OBDOutput|null> {
 
       return Promise.resolve(ret);
     } else {
+      log('no match found for pid %s', pidCode);
       // Emit the data, but just the raw bytes
       return Promise.resolve(ret);
     }

@@ -2,9 +2,10 @@ node_modules/
 *.log
 .DS_Store
 
-lib/
 tsconfig.json
 tslint.json
 typings.json
 typings
-dist/test
+*.ts
+!*.d.ts
+!*.js

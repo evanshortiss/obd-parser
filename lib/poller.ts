@@ -96,7 +96,7 @@ export class ECUPoller extends EventEmitter {
    */
   private isMatchingPayload (data: OBDOutput) {
     return data.bytes ?
-      data.bytes.indexOf(this.args.pid.getPid()) === 2 : false;
+      data.bytes.substr(2, 2) === this.args.pid.getPid() : false;
   }
 
   /**

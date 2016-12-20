@@ -2,8 +2,8 @@
   "name": "obd-parser",
   "version": "0.2.1",
   "description": "OBD interface that can send and receive messages over a given connection.",
-  "main": "dist/obd-interface.js",
-  "typings": "dist/obd-interface.d.ts",
+  "main": "lib/obd-interface.js",
+  "typings": "lib/obd-interface.d.ts",
   "dependencies": {
     "bluebird": "~3.2.2",
     "case": "~1.4.2",
@@ -32,9 +32,9 @@
   "scripts": {
     "example": "npm run compile && tsc example/poll-rpm.ts && node example/poll-rpm.js",
     "example-fake": "npm run compile && tsc example/poll-fake.ts && node example/poll-fake.js",
-    "compile": "tsc lib/obd-interface.ts --declaration --outDir dist/",
-    "prepublish": "npm test && npm run compile",
-    "linelint": "linelint $(find lib/ -name \"*.ts\")",
+    "compile": "tsc lib/obd-interface.ts --declaration",
+    "prepublish": "npm run compile",
+    "linelint": "linelint $(find lib/ -name \"*.ts\" -not -name \"*.d.ts\")",
     "test": "echo \"Tests needed...\" && npm run-script linelint"
   },
   "keywords": [
