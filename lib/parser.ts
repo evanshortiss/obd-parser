@@ -7,8 +7,10 @@ import VError = require('verror');
 import * as Promise from 'bluebird';
 import * as pids from './pids/index';
 import { PID } from './pids/pid';
-import log = require('./log');
+import generateLogger from './log';
 import { OBDOutput } from './interfaces';
+
+const log = generateLogger('OBDStreamParser');
 
 let parser: OBDStreamParser;
 
@@ -42,9 +44,6 @@ export class OBDStreamParser extends Transform {
       // We have a full output from the OBD interface e.g "410C1B56\r\r>"
       log('serial output completed. parsing');
 
-      // Let listeners know that they can start to write again
-      self.emit('line-break');
-
       // The hex lines from the current buffer
       let outputs: Array<string> = extractOutputStrings(self._buffer);
 
@@ -61,6 +60,9 @@ export class OBDStreamParser extends Transform {
           });
       })
         .finally(() => {
+          // Let listeners know that they can start to write again
+          self.emit('line-break');
+
           // Reset the buffer since we've successfully parsed it
           self._flush(done);
         });
@@ -187,7 +189,7 @@ function parseObdString (str: string) : Promise<OBDOutput|null> {
     let pid:PID|null = pids.getPidByPidCode(pidCode);
 
     if (pid) {
-      log('found match for pid %s', pidCode);
+      log(`we have a matching class for code "${pidCode}"`);
       // We have a class that knows how to deal with this pid output. Parse it!
       ret.pretty = pid.getFormattedValueForBytes(bytes);
 

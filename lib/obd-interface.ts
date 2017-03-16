@@ -3,7 +3,9 @@
 import * as connection from './connection';
 import * as Promise from 'bluebird';
 import * as PIDS from './pids/pid';
-import log = require('./log');
+import generateLogger from './log';
+
+const log = generateLogger();
 
 // Export all PIDS classes so they can be passed to an ECUPoller
 export { PIDS as PIDS };

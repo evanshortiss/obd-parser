@@ -5,29 +5,24 @@
   "main": "lib/obd-interface.js",
   "typings": "lib/obd-interface.d.ts",
   "dependencies": {
-    "bluebird": "~3.2.2",
-    "case": "~1.4.2",
-    "debug": "~2.3.3",
-    "ramda": "~0.22.1",
-    "verror": "~1.6.1"
+    "bluebird": "3.2.2",
+    "case": "1.4.2",
+    "debug": "2.3.3",
+    "ramda": "0.22.1",
+    "verror": "1.6.1"
   },
   "devDependencies": {
-    "@types/bluebird": "~3.0.35",
-    "@types/core-js": "~0.9.35",
+    "@types/bluebird": "3.0.35",
+    "@types/core-js": "0.9.35",
     "@types/debug": "0.0.29",
-    "@types/node": "~6.0.46",
+    "@types/node": "6.0.46",
     "@types/ramda": "0.0.2",
-    "@types/verror": "~1.6.28",
-    "chai-as-promised": "~5.2.0",
-    "dts-gen": "~0.4.17",
-    "istanbul": "~0.4.2",
-    "linelint": "~1.0.1",
-    "mocha": "~2.4.5",
-    "obd-parser-development-connection": "~0.1.0",
-    "obd-parser-serial-connection": "~0.1.1",
-    "proxyquire": "~1.7.4",
-    "sinon": "~1.17.3",
-    "typescript": "~2.0.10"
+    "@types/verror": "1.6.28",
+    "istanbul": "0.4.2",
+    "linelint": "1.0.1",
+    "obd-parser-development-connection": "0.1.0",
+    "obd-parser-serial-connection": "0.1.1",
+    "typescript": "2.0.10"
   },
   "scripts": {
     "example": "npm run compile && tsc example/poll-rpm.ts && node example/poll-rpm.js",

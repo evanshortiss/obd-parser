@@ -7,10 +7,10 @@ export interface OBDConnection {
 
 export interface OBDOutput {
   ts: Date
-  value: any|string|null,
-  pretty: string|null,
-  bytes: string,
-  name?: string,
+  value: any|string|null
+  pretty: string|null
+  bytes: string
+  name?: string
   pid?: string
 }
 

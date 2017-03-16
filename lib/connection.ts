@@ -4,10 +4,15 @@ import * as Promise from 'bluebird';
 import { OBD_OUTPUT_EOL } from './constants';
 import { getParser } from './parser';
 import { OBDConnection } from './interfaces';
-import log = require('./log');
+import generateLogger from './log';
+
+const log = generateLogger('connection');
 
 let connectorFn: Function;
 let connection:OBDConnection|null = null;
+
+let msgRecvCount = 0;
+let msgSendCount = 0;
 
 /**
  * Sets the connection to be used. This should be passed a
@@ -56,33 +61,44 @@ export function configureConnection (conn: OBDConnection) {
   let locked:boolean = false;
 
   function doWrite (msg: string) {
+    log(`writing "${msg}". queue state ${JSON.stringify(queue)}`);
+    log(`send count ${msgSendCount}. receive count ${msgRecvCount}`);
     locked = true;
 
-    // Need to write the number of expected replies
-    let replyCount:number = (msg.indexOf('AT') === 0) ? 0 : 1;
+    // Need to write the number of expected replies for poller messages
+    // TODO: Better implementation for passing expected replies count...
+    if (msg.indexOf('AT') === -1) {
+      // Generate the final message to be sent, e.g "010C1\r" (add the final '1')
+      msg = msg + '1';
+    }
 
-    // Generate the final message to be sent, e.g "ATE00\r"
-    msg = msg
-      .concat(replyCount.toString())
-      .concat(OBD_OUTPUT_EOL);
+    msg = msg.concat(OBD_OUTPUT_EOL);
 
-    log('writing message "%s", connection will lock', msg);
+    log(`writing message ${msg}. connection will lock`);
 
     // When next "line-break" event is emitted by the parser we can send
     // next message since we know it has been processed - we don't care
     // about success etc
     getParser().once('line-break', function () {
+      msgRecvCount++;
+
       // Get next queued message (FIFO ordering)
       let payload:string|undefined = queue.shift();
 
       locked = false;
 
-      log('connection unlocked');
+      log(`new line detected by parser. connection unlocked. queue contains ${JSON.stringify(queue)}`);
 
       if (payload) {
-        log('writing queued payload: "%s"', payload);
+        log(
+          'writing previously queued payload "%s". queue now contains %s',
+          payload,
+          JSON.stringify(queue)
+        );
         // Write a new message (FIFO)
         conn.write(payload);
+      } else {
+        log('no payloads are queued');
       }
     });
 
@@ -93,15 +109,25 @@ export function configureConnection (conn: OBDConnection) {
   // Overwrite the public write function with our own
   conn.write = function _obdWrite (msg:string) {
     if (!locked && msg) {
+      msgSendCount++;
+      log(`queue is unlocked, writing message "${msg}"`);
       doWrite(msg);
     } else if (msg) {
-      log('queue is locked. queueing message %s', JSON.stringify(msg));
       queue.push(msg);
+      log(
+        'queue is locked. queued message %s. entries are %s',
+        JSON.stringify(msg),
+        queue.length,
+        JSON.stringify(queue)
+      );
     }
   };
 
   // Pipe all output from the serial connection to our parser
-  conn.on('data', getParser().write.bind(getParser()));
+  conn.on('data', function (str) {
+    log(`received data "${str}"`);
+    getParser().write(str);
+  });
 
   // Configurations below are from node-serial-obd and python-OBD
 
@@ -123,5 +149,19 @@ export function configureConnection (conn: OBDConnection) {
   // seems to have issues. Maybe this should be an option we can pass?
   conn.write('ATSP0');
 
-  return Promise.resolve(conn);
+  // TODO: use events instead
+  // Nasty way to make sure configuration calls have been performed before use
+  return new Promise((resolve) => {
+    let interval: NodeJS.Timer = setInterval(() => {
+     if (queue.length === 0) {
+       clearInterval(interval);
+       setTimeout(function () {
+         log('connection intialisation complete');
+         resolve(conn);
+       }, 500);
+     } else {
+       log('connection initialising...');
+     }
+    }, 250);
+  });
 }
